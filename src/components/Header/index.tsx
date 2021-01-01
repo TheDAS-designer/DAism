@@ -299,7 +299,7 @@ export default function Header() {
         <HeaderLinks>
         <StyledNavLink
             id={`pool-nav-link`}
-            to={'/pool'}
+            to={'/dao'}
             isActive={(match, { pathname }) =>
               Boolean(match) ||
               pathname.startsWith('/add') ||

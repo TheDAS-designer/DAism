@@ -8,7 +8,7 @@ import { useActiveWeb3React } from '../../hooks'
 import useParsedQueryString from '../../hooks/useParsedQueryString'
 import { isAddress } from '../../utils'
 import { AppDispatch, AppState } from '../index'
-import { showAddDaoComponentsPanelWithDaoIDAction, daoFactoryChangeAction, daoFundChangeAction, addMemberAddressAction, memberPrestigeChangeAction, memberDeleteAction } from './actions';
+import { showAddDaoComponentsPanelWithDaoIDAction, daoFactoryChangeAction, daoFundChangeAction, addMemberAddressAction, memberPrestigeChangeAction, memberDeleteAction, inputErrorAction } from './actions';
 import { Member } from './reducer';
 import { get } from 'lodash';
 
@@ -43,6 +43,7 @@ export function useDaoComponentsActionHandlers(): {
 
   const dispatch = useDispatch<AppDispatch>()
   const isShow = useDaoComponentsState().showAddDaoComponentsPanel
+  const errorState = useDaoComponentsState().inputError
   // const aaa = useDAONameCheck(ddName)
   const onShowDaoComponentsPanel = useCallback(
     (daoId: string) => {
@@ -59,36 +60,48 @@ export function useDaoComponentsActionHandlers(): {
   const onAddDaoFactory = useCallback((address: string) => {
     //这里可以做前端校验
     const daoFactoryAddress = validatedComponentsAddress(address)
-    if (!daoFactoryAddress) return false
+    if (!daoFactoryAddress) 
+    {
+      
+      dispatch(inputErrorAction({...errorState, factoryError: true}))
+      return false
+    }
 
     console.log('testing add DAo Factory address right')
     dispatch(daoFactoryChangeAction({ daoFactoryAddress }))
     return true
-  }, [dispatch, daoFactoryChangeAction, validatedComponentsAddress])
+  }, [dispatch, daoFactoryChangeAction, validatedComponentsAddress, errorState])
 
   const daoFactoryState = useDaoComponentsState().daoFactoryAddress
 
   const onAddDaoFund = useCallback((address: string) => {
     //这里可以做前端校验
     const daoFundAddress = validatedComponentsAddress(address)
-    if (!daoFundAddress) return false
-
+    if (!daoFundAddress) {
+      dispatch(inputErrorAction({...errorState, fundError: true}))
+      return false
+    }
     console.log('testing add DAo Fund address right')
     dispatch(daoFundChangeAction({ daoFundAddress }))
     return true
-  }, [dispatch, daoFundChangeAction, validatedComponentsAddress])
+  }, [dispatch, daoFundChangeAction, validatedComponentsAddress, errorState])
 
   const onChangeDaoMemberAddressInput = useCallback((address: string) => {
     //这里可以做前端校验
     const memberAddress = validatedComponentsAddress(address)
-    if (!memberAddress) return false
+    if (!memberAddress) {
+      dispatch(inputErrorAction({...errorState, memberError: true}))
+      return false
+    }
     return true
-  }, [ validatedComponentsAddress])
+  }, [ validatedComponentsAddress , errorState])
 
 
   const onChangeDaoMemberPrestigeInput = useCallback((address:string, prestigeAmount: number) => {
     const memberAddress = validatedComponentsAddress(address)
-    if (!memberAddress) return 
+    if (!memberAddress){  
+      return 
+    }
 
     dispatch(memberPrestigeChangeAction({address, prestigeAmount}))
   }, [ dispatch, memberPrestigeChangeAction,validatedComponentsAddress])

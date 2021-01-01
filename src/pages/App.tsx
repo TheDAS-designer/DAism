@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react'
-import { Route, Switch } from 'react-router-dom'
+import { Route, Switch, Redirect } from 'react-router-dom'
 import styled from 'styled-components'
 import GoogleAnalyticsReporter from '../components/analytics/GoogleAnalyticsReporter'
 import AddressClaimModal from '../components/claim/AddressClaimModal'
@@ -22,7 +22,7 @@ import DarkModeQueryParamReader from '../theme/DarkModeQueryParamReader'
 // import MigrateV1 from './MigrateV1'
 // import MigrateV1Exchange from './MigrateV1/MigrateV1Exchange'
 // import RemoveV1Exchange from './MigrateV1/RemoveV1Exchange'
-import Pool from './Pool'
+import Dao from './Dao'
 // import PoolFinder from './PoolFinder'
 // import RemoveLiquidity from './RemoveLiquidity'
 // import { RedirectOldRemoveLiquidityPathStructure } from './RemoveLiquidity/redirects'
@@ -91,12 +91,12 @@ export default function App() {
           <TopLevelModals />
           <Web3ReactManager>
             <Switch>
-              <Route exact strict path="/Register" component={Register} />
+              <Route exact strict path="/register" component={Register} />
               {/* <Route exact strict path="/claim" component={OpenClaimAddressModalAndRedirectToSwap} />
               <Route exact strict path="/swap/:outputCurrency" component={RedirectToSwap} />
               <Route exact strict path="/send" component={RedirectPathToSwapOnly} />
               <Route exact strict path="/find" component={PoolFinder} /> */}
-              <Route exact strict path="/pool" component={Pool} />
+              <Route exact strict path="/dao" component={Dao} />
               {/* <Route exact strict path="/uni" component={Earn} />
               <Route exact strict path="/vote" component={Vote} />
               <Route exact strict path="/create" component={RedirectToAddLiquidity} />
@@ -114,6 +114,7 @@ export default function App() {
               <Route exact strict path="/uni/:currencyIdA/:currencyIdB" component={Manage} />
               <Route exact strict path="/vote/:id" component={VotePage} />
               <Route component={RedirectPathToSwapOnly} /> */}
+              <Redirect from='/' exact to='/register' /> 
             </Switch>
           </Web3ReactManager>
           <Marginer />

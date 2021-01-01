@@ -29,7 +29,8 @@ export enum BodyState{
   NOT_ADD,
   PENDING,
   ADDED,
-  UNKNOWN
+  UNKNOWN,
+  UNCHECK
 }
 
 // returns a variable indicating the state of the approval and a function which approves if necessary or early returns
@@ -110,6 +111,10 @@ export function useAddBodyCallback(): [BodyState, () => Promise<void>] {
   // check the current approval status
   const bodyState: BodyState = useMemo(() => {
     console.log('[pendingAdd, not_add, added] :',pendingAdd, not_add, added)
+    if(!daoComponentsState.daoFactoryAddress || !daoComponentsState.daoFundAddress || daoComponentsState.daoMemebers?.length === 0)return BodyState.UNCHECK
+    if(daoComponentsState.inputError && (daoComponentsState.inputError.factoryError || daoComponentsState.inputError.fundError || daoComponentsState.inputError.memberError)) {
+      return BodyState.ERROR
+    }
     if(added) return BodyState.ADDED
     if(not_add) return BodyState.NOT_ADD
     
@@ -129,9 +134,7 @@ export function useAddBodyCallback(): [BodyState, () => Promise<void>] {
   const addBody = useCallback(async (): Promise<void> => {
     // console.log('addBody!!!!! ')
     // console.log(`daoComponentsState.daoId:${daoComponentsState.daoId} daoComponentsState.daoFactoryAddress:${daoComponentsState.daoFactoryAddress} daoComponentsState.daoFundAddress:${daoComponentsState.daoFundAddress}`)
-    if (!daoComponentsState.daoId
-      || !daoComponentsState.daoFactoryAddress 
-      || !daoComponentsState.daoFundAddress
+    if (bodyState === BodyState.ERROR
       || !account || !chainId) {
       return
     }

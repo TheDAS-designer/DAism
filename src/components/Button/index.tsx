@@ -301,10 +301,14 @@ export function ButtonError({ error,...rest }: { error?: boolean  } & ButtonProp
   }
 }
 
-export function ButtonAddComp({ registeredAndNoShowComponents,...rest }: {registeredAndNoShowComponents?: boolean } & ButtonProps) {
+export function ButtonAddComp({ registeredAndNoShowComponents, confirmed ,...rest }: {registeredAndNoShowComponents?: boolean, confirmed:boolean } & ButtonProps) {
   if (registeredAndNoShowComponents) {
     return <ButtonPrimary {...rest} registeredAndNoShowComponents={registeredAndNoShowComponents}/>
-  } else {
+  }else if(confirmed){
+    return <ButtonConfirmedStyle {...rest} />
+  } 
+  
+  else {
     return <ButtonPrimary {...rest} />
   }
 }

@@ -7,6 +7,7 @@ import {
   , addMemberAddressAction
   , memberPrestigeChangeAction
   , memberDeleteAction
+  ,inputErrorAction
 } from './actions'
 
 export interface Member {
@@ -20,6 +21,7 @@ export interface daoComponentsInterface {
   daoFactoryAddress: string
   daoFundAddress: string
   daoMemebers: Array<Member>
+  inputError: {factoryError: boolean, fundError: boolean, memberError: boolean}
 }
 
 const initialState: daoComponentsInterface = {
@@ -27,7 +29,8 @@ const initialState: daoComponentsInterface = {
   showAddDaoComponentsPanel: false,
   daoFactoryAddress: '',
   daoFundAddress: '',
-  daoMemebers: []
+  daoMemebers: [],
+  inputError: {factoryError: false, fundError: false, memberError: false}
 
 }
 
@@ -47,13 +50,15 @@ export default createReducer<daoComponentsInterface>(initialState, builder =>
     .addCase(daoFactoryChangeAction, (state, { payload: { daoFactoryAddress } }) => {
       return {
         ...state,
-        daoFactoryAddress
+        daoFactoryAddress,
+        inputError: {...state.inputError, factoryError: false}
       }
     })
     .addCase(daoFundChangeAction, (state, { payload: { daoFundAddress } }) => {
       return {
         ...state,
-        daoFundAddress
+        daoFundAddress,
+        inputError: {...state.inputError, fundError: false}
       }
     })
     .addCase(addMemberAddressAction, (state, { payload: { address } }) => {
@@ -61,7 +66,7 @@ export default createReducer<daoComponentsInterface>(initialState, builder =>
       if (exists && exists.length > 0) return
       const newMember: Member = { address, prestige: 0 }
       state.daoMemebers.push(newMember)
-
+      state.inputError = {...state.inputError, memberError: false}
     })
     .addCase(memberPrestigeChangeAction, (state, { payload: { address, prestigeAmount } }) => {
       const newMembers = state.daoMemebers.map(m => {
@@ -80,5 +85,11 @@ export default createReducer<daoComponentsInterface>(initialState, builder =>
         daoMemebers:newMembers
       }
       //state.daoMemebers.filter(m => m.address !== address)
+    })
+    .addCase(inputErrorAction, (state, { payload: error }) => {
+      return {
+        ...state,
+        inputError: error
+      }
     })
 )

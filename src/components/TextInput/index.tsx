@@ -1,4 +1,5 @@
-import React , { useState }  from 'react'
+import useDebounce from 'hooks/useDebounce'
+import React , { useState ,useEffect}  from 'react'
 import styled from 'styled-components'
 import { escapeRegExp } from '../../utils'
 
@@ -52,15 +53,13 @@ export const Input = React.memo(function InnerInput({
   align?: 'right' | 'left'
 } & Omit<React.HTMLProps<HTMLInputElement>, 'ref' | 'onChange' | 'as'>) {
   const [value, setValue] = useState('')
-  // const enforcer = (nextUserInput: string) => {
-  //   if (nextUserInput === '' || inputRegex.test(escapeRegExp(nextUserInput))) {
-  //     onUserInput(nextUserInput)
-  //   }
-  // }
-  const checkDAOName = (name : string) : boolean => {
-    onUserInput(name)
-    return false
-  }
+  const debouncedValue = useDebounce(value,1000)
+
+  useEffect(()=>{
+    if(debouncedValue){
+      onUserInput(debouncedValue)
+    }
+  },[debouncedValue])
 
   return (
     <StyledInput
@@ -68,7 +67,7 @@ export const Input = React.memo(function InnerInput({
       onChange={event => {
         // replace commas with periods, because uniswap exclusively uses period as the decimal separator
         // TODO: Check if the name of the DAO exists
-        checkDAOName(event.target.value)
+        setValue(event.target.value)
       }}
       // universal input options
       inputMode="text"

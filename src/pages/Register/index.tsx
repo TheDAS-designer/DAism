@@ -31,8 +31,7 @@ import { getTradeVersion, isTradeBetter } from '../../data/V1'
 import { useActiveWeb3React } from '../../hooks'
 import { useCurrency } from '../../hooks/Tokens'
 //import { ApprovalState, useApproveCallbackFromTrade } from '../../hooks/useApproveCallback'
-import { RegistState, useRegisterCallbackFromDAO } from '../../hooks/useRegisterCallback'
-import { BodyState, useAddBodyCallback } from '../../hooks/useRegisterCallback'
+import { RegistState, useRegisterCallbackFromDAO, BodyState, useAddBodyCallback } from '../../hooks/useRegisterCallback'
 import useENSAddress from '../../hooks/useENSAddress'
 import { useSwapCallback } from '../../hooks/useSwapCallback'
 import useToggledVersion, { DEFAULT_VERSION, Version } from '../../hooks/useToggledVersion'
@@ -56,6 +55,7 @@ import AppBody from '../AppBody'
 import { ClickableText } from '../Pool/styleds'
 import Loader from '../../components/Loader'
 import { ButtonAddComp } from '../../components/Button/index';
+import useDebounce from 'hooks/useDebounce'
 
 export default function Register() {
   const loadedUrlParams = useDefaultsFromURLSearch()
@@ -530,15 +530,24 @@ export default function Register() {
                     id="next-button"
                     disabled={
                       registerStateMemo !== RegistState.REGISTERD ||
-                      bodyState === BodyState.PENDING||
-                      bodyState === BodyState.ERROR ||
-                      bodyState === BodyState.UNKNOWN 
+                      isShowDaoComponentsState? 
+                      (bodyState === BodyState.UNCHECK ||
+                        bodyState === BodyState.PENDING||
+                        bodyState === BodyState.ERROR ||
+                        bodyState === BodyState.UNKNOWN )
+                      : false
+                      
                     }
                     //error={registerStateMemo !== RegistState.REGISTERD}
-                    registeredAndNoShowComponents={(registerStateMemo === RegistState.REGISTERD && !isShowDaoComponentsState) || (bodyState === BodyState.ADDED)}
+                    registeredAndNoShowComponents={(registerStateMemo === RegistState.REGISTERD && !isShowDaoComponentsState) || (bodyState === BodyState.NOT_ADD)}
+                    confirmed={registerStateMemo === RegistState.REGISTERD && bodyState === BodyState.ADDED}
                   >
                     <Text fontSize={16} fontWeight={500}>
-                      {'Add Components'}
+                      {bodyState === BodyState.PENDING ? (
+                        //true ? (
+                        <AutoRow gap="6px" justify="center">
+                          Waiting <Loader stroke="white" />
+                        </AutoRow>): bodyState === BodyState.ADDED? 'Issue token?' :'Add Components'}
                     </Text>
                   </ButtonAddComp>
                 </RowBetween>
@@ -557,7 +566,7 @@ export default function Register() {
             }
             {showApproveFlow && (
               <Column style={{ marginTop: '1rem' }}>
-                <ProgressSteps steps={[registerStateMemo === RegistState.REGISTERD]} />
+                <ProgressSteps steps={[registerStateMemo === RegistState.REGISTERD, bodyState === BodyState.ADDED]} />
               </Column>
             )}
             {isExpertMode && swapErrorMessage ? <SwapCallbackError error={swapErrorMessage} /> : null}
