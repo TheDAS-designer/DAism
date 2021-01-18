@@ -10,11 +10,12 @@ import { DAO } from '../register/reducer';
 import { Type } from 'react-feather'
 import { group } from 'console'
 import { daoComponentsInterface } from '../daoComponents/reducer';
+import { daoIssueInterface } from 'state/daoIssue/reducer'
 
 // helper that can take a ethers library transaction response and add it to the list of transactions
 export function useTransactionAdder(): (
   response: TransactionResponse,
-  customData?: { summary?: string; approval?: { tokenAddress: string; spender: string }; claim?: { recipient: string }; dao?: DAO ; body?:daoComponentsInterface }
+  customData?: { summary?: string; approval?: { tokenAddress: string; spender: string }; claim?: { recipient: string }; dao?: DAO; body?: daoComponentsInterface ; issue?: daoIssueInterface}
 ) => void {
   const { chainId, account } = useActiveWeb3React()
   const dispatch = useDispatch<AppDispatch>()
@@ -27,8 +28,9 @@ export function useTransactionAdder(): (
         approval,
         claim,
         dao,
-        body
-      }: { summary?: string; claim?: { recipient: string }; approval?: { tokenAddress: string; spender: string }; dao?: DAO ; body?:daoComponentsInterface } = {}
+        body,
+        issue
+      }: { summary?: string; claim?: { recipient: string }; approval?: { tokenAddress: string; spender: string }; dao?: DAO; body?: daoComponentsInterface; issue?: daoIssueInterface } = {}
     ) => {
       if (!account) return
       if (!chainId) return
@@ -37,7 +39,7 @@ export function useTransactionAdder(): (
       if (!hash) {
         throw Error('No transaction hash found.')
       }
-      dispatch(addTransaction({ hash, from: account, chainId, approval, summary, claim, dao, body }))
+      dispatch(addTransaction({ hash, from: account, chainId, approval, summary, claim, dao, body, issue }))
     },
     [dispatch, chainId, account]
   )
@@ -124,82 +126,38 @@ export function useHasPendingRegister(dao: DAO | undefined): boolean[] {
     }
 
     if (receiptTxs && receiptTxs.txs && receiptTxs.txs.length > 0 && receiptTxs.txs.some(a => a.dao && a.dao.daoName === dao.daoName && a.dao.daoID === dao.daoID)) {
-      
+
       return [false, false, true]
     }
     return [false, true, false]
-
-    // for (let i = 0; i < txs.length; i++) {
-    //   let hash = txs[i]
-    //   const tx = allTransactions[hash]
-    //   console.log(' const tx = allTransactions[hash] :', tx)
-    //   console.log('dao:', dao)
-    //   if (!tx) {
-    //     continue
-    //   }
-    //   if (tx.receipt) {
-    //     //已经请求成功且是要检查的dao
-    //     if (tx.dao && tx.dao.daoID === dao.daoID && tx.dao.daoName === dao.daoName) {
-    //       setRState([false, false, true])
-    //       console.log('已经请求成功且是要检查的dao setRState([false, false, true]')
-    //       return
-    //     } else {
-    //       continue
-    //     }
-    //   } else {//是要检查的dao但是还未请求设置为pending状态
-    //     const _dao = tx.dao
-    //     if (!_dao) {
-    //       continue
-    //     }
-    //     if (_dao.daoName === dao.daoName && _dao.daoID === dao.daoID, _dao.svg === dao.svg && isTransactionRecent(tx)) {
-    //       setRState([true, false, false])
-    //       console.log('是要检查的dao但是还未请求设置为pending状态 , setRState([true, false, false])')
-    //       return
-    //     }
-    //   }
-    // }
   },
     [allTransactions, dao]
   )
 
 }
 
-
+//useHasPendingIssue
 export function useHasPendingAddBody(components: daoComponentsInterface | undefined): boolean[] {
-  //[pending, not_addBody， added]
-  //const [rState, setRState] = useState([false, true, false])
   const allTransactions = useAllTransactions()
-
+  //[pending, not_add， added]
   return useMemo(() => {
     //check format
     if (!components ||
       !components.daoFactoryAddress ||
-      !components.daoFundAddress||
-      !components.daoMemebers||
+      !components.daoFundAddress ||
+      !components.daoMemebers ||
       components.daoMemebers.length === 0 ||
       !components.daoId
-      ) return [false, true, false]
+    ) return [false, true, false]
 
-  
+    let receiptTxs: Array<TransactionDetails> = []
+    let pendingTxs: Array<TransactionDetails> = []
+    Object.keys(allTransactions).forEach((txs) => {
 
-    // // 将txs根据是否有receipt分成两组
-    // let groupByTxs = chain(allTransactions)
-    //   .groupBy((tx) => { return tx.receipt })
-    //   .map((value, key) => ({ hasReceipt: key === 'undefined' ? false : true, txs: value }))
-    //   .value();
-    
-    // groupByTxs = sortBy(groupByTxs, (a) => !a.hasReceipt) //经过排序后groupByTxs[0]一定是有接收的
-    // console.log("result:", groupByTxs)
-    // const receiptTxs = groupByTxs[0]
-    // const pendingTxs = groupByTxs[1]
-    let receiptTxs: Array<TransactionDetails> = [] 
-    let pendingTxs:Array<TransactionDetails> = []
-    Object.keys(allTransactions).forEach((txs)=>{
-      
       const t = allTransactions[txs]
-      if(t.receipt){
+      if (t.receipt) {
         receiptTxs.push(t)
-      }else{
+      } else {
         pendingTxs.push(t)
       }
     })
@@ -208,19 +166,19 @@ export function useHasPendingAddBody(components: daoComponentsInterface | undefi
 
     if (pendingTxs.length > 0
       && pendingTxs.some(
-        a => a.body && a.body.daoId === components.daoId  
-        && a.body.daoFactoryAddress === components.daoFactoryAddress 
-        && a.body.daoFundAddress === components.daoFundAddress
-        && isTransactionRecent(a))) {
+        a => a.body && a.body.daoId === components.daoId
+          && a.body.daoFactoryAddress === components.daoFactoryAddress
+          && a.body.daoFundAddress === components.daoFundAddress
+          && isTransactionRecent(a))) {
 
       return [true, false, false]
 
     }
 
-    if ( receiptTxs.length > 0 && receiptTxs.some( a => a.body && a.body.daoId === components.daoId  
-      && a.body.daoFactoryAddress === components.daoFactoryAddress 
+    if (receiptTxs.length > 0 && receiptTxs.some(a => a.body && a.body.daoId === components.daoId
+      && a.body.daoFactoryAddress === components.daoFactoryAddress
       && a.body.daoFundAddress === components.daoFundAddress)) {
-      
+
       return [false, false, true]
     }
     return [false, true, false]
@@ -230,6 +188,64 @@ export function useHasPendingAddBody(components: daoComponentsInterface | undefi
 
 }
 
+
+
+export function useHasPendingIssue(issueState: daoIssueInterface | undefined): boolean[] {
+  const allTransactions = useAllTransactions()
+  //[pending, not_issue， issued]
+  return useMemo(() => {
+    //check format
+    if (!issueState ||
+      !issueState.allocationProportion ||
+      !issueState.decimal ||
+      !issueState.initialPrice ||
+      !issueState.tokenName ||
+      !issueState.tokenSymbol ||
+      !issueState.totalSupply
+    ) return [false, true, false]
+
+    const receiptTxs: Array<TransactionDetails> = []
+    const pendingTxs: Array<TransactionDetails> = []
+    Object.keys(allTransactions).forEach((txs) => {
+
+      const t = allTransactions[txs]
+      if (t.receipt) {
+        receiptTxs.push(t)
+      } else {
+        pendingTxs.push(t)
+      }
+    })
+
+    if (pendingTxs.length > 0
+      && pendingTxs.some(
+        a => a.issue && a.issue.allocationProportion === issueState.allocationProportion
+          && a.issue.decimal === issueState.decimal
+          && a.issue.initialPrice === issueState.initialPrice
+          && a.issue.tokenName === issueState.tokenName
+          && a.issue.tokenSymbol === issueState.tokenSymbol
+          && a.issue.totalSupply === issueState.totalSupply
+          && isTransactionRecent(a))) {
+
+      return [true, false, false]
+
+    }
+
+    if (receiptTxs.length > 0 && receiptTxs.some(a =>
+      a.issue && a.issue.allocationProportion === issueState.allocationProportion
+      && a.issue.decimal === issueState.decimal
+      && a.issue.initialPrice === issueState.initialPrice
+      && a.issue.tokenName === issueState.tokenName
+      && a.issue.tokenSymbol === issueState.tokenSymbol
+      && a.issue.totalSupply === issueState.totalSupply)) {
+
+      return [false, false, true]
+    }
+    return [false, true, false]
+  },
+    [allTransactions, issueState]
+  )
+
+}
 
 
 // watch for submissions to claim

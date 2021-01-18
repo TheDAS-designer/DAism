@@ -10,7 +10,6 @@ import { isAddress } from '../../utils'
 import { AppDispatch, AppState } from '../index'
 import { showAddDaoComponentsPanelWithDaoIDAction, daoFactoryChangeAction, daoFundChangeAction, addMemberAddressAction, memberPrestigeChangeAction, memberDeleteAction, inputErrorAction } from './actions';
 import { Member } from './reducer';
-import { get } from 'lodash';
 
 const ENS_NAME_REGEX = /^[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)?$/
 const ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/

@@ -31,7 +31,7 @@ import { getTradeVersion, isTradeBetter } from '../../data/V1'
 import { useActiveWeb3React } from '../../hooks'
 import { useCurrency } from '../../hooks/Tokens'
 //import { ApprovalState, useApproveCallbackFromTrade } from '../../hooks/useApproveCallback'
-import { RegistState, useRegisterCallbackFromDAO, BodyState, useAddBodyCallback } from '../../hooks/useRegisterCallback'
+import { RegistState, useRegisterCallbackFromDAO, BodyState, useAddBodyCallback, useIssueCallback, IssueState } from '../../hooks/useRegisterCallback';
 import useENSAddress from '../../hooks/useENSAddress'
 import { useSwapCallback } from '../../hooks/useSwapCallback'
 import useToggledVersion, { DEFAULT_VERSION, Version } from '../../hooks/useToggledVersion'
@@ -39,6 +39,7 @@ import useWrapCallback, { WrapType } from '../../hooks/useWrapCallback'
 import { useToggleSettingsMenu, useWalletModalToggle } from '../../state/application/hooks'
 import { useRegisterActionHandlers, useRegisterState } from '../../state/register/hooks'
 import { useDaoComponentsActionHandlers, useDaoComponentsState } from '../../state/daoComponents/hooks';
+import { useDaoIssueActionHandlers, useDaoIssueState } from '../../state/daoIssue/hooks';
 import { useRegist } from '../../hooks/useRegister'
 import { Field } from '../../state/swap/actions'
 import {
@@ -56,6 +57,12 @@ import { ClickableText } from '../Pool/styleds'
 import Loader from '../../components/Loader'
 import { ButtonAddComp } from '../../components/Button/index';
 import useDebounce from 'hooks/useDebounce'
+import IssuePannel from 'components/IssuePanel'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
+import { useForm } from 'react-hook-form'
+import { isShowIssuePanelAction } from '../../state/daoIssue/actions';
+
 
 export default function Register() {
   const loadedUrlParams = useDefaultsFromURLSearch()
@@ -159,23 +166,60 @@ export default function Register() {
 
 
   const { daoName, daoID, svg: svg } = useRegisterState()
-  const { daoFactoryAddress, daoFundAddress , daoMemebers} = useDaoComponentsState()
+  const { daoFactoryAddress, daoFundAddress, daoMemebers } = useDaoComponentsState()
   const [bodyState, addBody] = useAddBodyCallback()
 
+
+  const schema = yup.object().shape({
+    allocationProportion: yup.string().matches(/^[0-9]*$/, 'Proportion must be a number').required('Required!'),//new Percent(JSBI.BigInt(1), JSBI.BigInt(100)),
+    initialPrice: yup.string().matches(/^[0-9]*$/, 'initialPrice must be a number').required('Required!'),
+    decimal: yup.string().matches(/^[0-9]*$/, 'decimal must be a number').required('Required!'),
+    tokenName: yup.string().required('Required!'),
+    tokenSymbol: yup.string().required('Required!'),
+    totalSupply: yup.string().matches(/^[0-9]*$/, 'totalSupply must be a number').required('Required!')
+  })
+
+  // react-hook-form tools
+  const { register, handleSubmit, control, errors, watch } = useForm({
+    resolver: yupResolver(schema),
+    mode: 'onBlur'
+  })
+
+  const [IssueState, issue]  = useIssueCallback()
+
+
+
+
   const { onShowDaoComponentsPanel, isShowDaoComponentsState, onAddDaoFactory, daoFactoryState, onAddDaoFund, onAddDaoMemberAddress } = useDaoComponentsActionHandlers()
+  const { onClickShowIssuePanel, saveIssueData } = useDaoIssueActionHandlers()
+
+
+  const onSubmit = (data: any) => {
+    console.log(data)
+    if(!saveIssueData(data)) return
+    issue(data)
+  }
+
+  const showIssue = useDaoIssueState().isShowIssuePanel
   const handleShowAddDaoComponentsPanel = useCallback(
     () => {
 
-      if (isShowDaoComponentsState) { //如果已经打开则触发提交方法
-        if(bodyState === BodyState.ADDED) return
-        console.log('isShowDaoComponentsState :', isShowDaoComponentsState)
-        addBody()
-      } else {
+      if (isShowDaoComponentsState) { //是否为dao组件流程
+        if (bodyState === BodyState.ADDED) {
+          //添加dao组件成功则显示issue表单
+          onClickShowIssuePanel()
+
+        } else {
+          console.log('isShowDaoComponentsState :', isShowDaoComponentsState)
+          addBody()
+        }
+      }
+      else {//false时代表第一次点击此按钮为了打开输入框
 
         onShowDaoComponentsPanel(daoID)
       }
 
-    }, [onShowDaoComponentsPanel, isShowDaoComponentsState, daoID, daoFactoryAddress, daoFundAddress , daoMemebers, bodyState ])
+    }, [onShowDaoComponentsPanel, isShowDaoComponentsState, daoID, daoFactoryAddress, daoFundAddress, daoMemebers, bodyState, showIssue])
 
   const handleAddDaoFactoryInput = useCallback((address: string): boolean => {
     return onAddDaoFactory(address)
@@ -239,49 +283,49 @@ export default function Register() {
 
   const { priceImpactWithoutFee } = computeTradePriceBreakdown(trade)
 
-  const handleSwap = useCallback(() => {
-    if (priceImpactWithoutFee && !confirmPriceImpactWithoutFee(priceImpactWithoutFee)) {
-      return
-    }
-    if (!swapCallback) {
-      return
-    }
-    setSwapState({ attemptingTxn: true, tradeToConfirm, showConfirm, swapErrorMessage: undefined, txHash: undefined })
-    swapCallback()
-      .then(hash => {
-        setSwapState({ attemptingTxn: false, tradeToConfirm, showConfirm, swapErrorMessage: undefined, txHash: hash })
+  // const handleSwap = useCallback(() => {
+  //   if (priceImpactWithoutFee && !confirmPriceImpactWithoutFee(priceImpactWithoutFee)) {
+  //     return
+  //   }
+  //   if (!swapCallback) {
+  //     return
+  //   }
+  //   setSwapState({ attemptingTxn: true, tradeToConfirm, showConfirm, swapErrorMessage: undefined, txHash: undefined })
+  //   swapCallback()
+  //     .then(hash => {
+  //       setSwapState({ attemptingTxn: false, tradeToConfirm, showConfirm, swapErrorMessage: undefined, txHash: hash })
 
-        ReactGA.event({
-          category: 'Swap',
-          action:
-            recipient === null
-              ? 'Swap w/o Send'
-              : (recipientAddress ?? recipient) === account
-                ? 'Swap w/o Send + recipient'
-                : 'Swap w/ Send',
-          label: [
-            trade?.inputAmount?.currency?.symbol,
-            trade?.outputAmount?.currency?.symbol,
-            getTradeVersion(trade)
-          ].join('/')
-        })
-      })
-      .catch(error => {
-        setSwapState({
-          attemptingTxn: false,
-          tradeToConfirm,
-          showConfirm,
-          swapErrorMessage: error.message,
-          txHash: undefined
-        })
-      })
-  }, [tradeToConfirm, account, priceImpactWithoutFee, recipient, recipientAddress, showConfirm, swapCallback, trade])
+  //       ReactGA.event({
+  //         category: 'Swap',
+  //         action:
+  //           recipient === null
+  //             ? 'Swap w/o Send'
+  //             : (recipientAddress ?? recipient) === account
+  //               ? 'Swap w/o Send + recipient'
+  //               : 'Swap w/ Send',
+  //         label: [
+  //           trade?.inputAmount?.currency?.symbol,
+  //           trade?.outputAmount?.currency?.symbol,
+  //           getTradeVersion(trade)
+  //         ].join('/')
+  //       })
+  //     })
+  //     .catch(error => {
+  //       setSwapState({
+  //         attemptingTxn: false,
+  //         tradeToConfirm,
+  //         showConfirm,
+  //         swapErrorMessage: error.message,
+  //         txHash: undefined
+  //       })
+  //     })
+  // }, [tradeToConfirm, account, priceImpactWithoutFee, recipient, recipientAddress, showConfirm, swapCallback, trade])
 
   // errors
-  const [showInverted, setShowInverted] = useState<boolean>(false)
+  // const [showInverted, setShowInverted] = useState<boolean>(false)
 
-  // warnings on slippage
-  const priceImpactSeverity = warningSeverity(priceImpactWithoutFee)
+  // // warnings on slippage
+  // const priceImpactSeverity = warningSeverity(priceImpactWithoutFee)
 
 
 
@@ -328,38 +372,33 @@ export default function Register() {
       registerStateMemo === RegistState.PENDING ||
       (approvalSubmitted && registerStateMemo === RegistState.REGISTERD))
   // &&!(priceImpactSeverity > 3 && !isExpertMode)
+  // const handleConfirmDismiss = useCallback(() => {
+  //   setSwapState({ showConfirm: false, tradeToConfirm, attemptingTxn, swapErrorMessage, txHash })
+  //   // if there was a tx hash, we want to clear the input
+  //   if (txHash) {
+  //     onUserInput(Field.INPUT, '')
+  //   }
+  // }, [attemptingTxn, onUserInput, swapErrorMessage, tradeToConfirm, txHash])
 
+  // const handleAcceptChanges = useCallback(() => {
+  //   setSwapState({ tradeToConfirm: trade, swapErrorMessage, txHash, attemptingTxn, showConfirm })
+  // }, [attemptingTxn, showConfirm, swapErrorMessage, trade, txHash])
 
+  // const handleInputSelect = useCallback(
+  //   inputCurrency => {
+  //     setApprovalSubmitted(false) // reset 2 step UI for approvals
+  //     onCurrencySelection(Field.INPUT, inputCurrency)
+  //   },
+  //   [onCurrencySelection]
+  // )
 
+  // const handleMaxInput = useCallback(() => {
+  //   maxAmountInput && onUserInput(Field.INPUT, maxAmountInput.toExact())
+  // }, [maxAmountInput, onUserInput])
 
-  const handleConfirmDismiss = useCallback(() => {
-    setSwapState({ showConfirm: false, tradeToConfirm, attemptingTxn, swapErrorMessage, txHash })
-    // if there was a tx hash, we want to clear the input
-    if (txHash) {
-      onUserInput(Field.INPUT, '')
-    }
-  }, [attemptingTxn, onUserInput, swapErrorMessage, tradeToConfirm, txHash])
-
-  const handleAcceptChanges = useCallback(() => {
-    setSwapState({ tradeToConfirm: trade, swapErrorMessage, txHash, attemptingTxn, showConfirm })
-  }, [attemptingTxn, showConfirm, swapErrorMessage, trade, txHash])
-
-  const handleInputSelect = useCallback(
-    inputCurrency => {
-      setApprovalSubmitted(false) // reset 2 step UI for approvals
-      onCurrencySelection(Field.INPUT, inputCurrency)
-    },
-    [onCurrencySelection]
-  )
-
-  const handleMaxInput = useCallback(() => {
-    maxAmountInput && onUserInput(Field.INPUT, maxAmountInput.toExact())
-  }, [maxAmountInput, onUserInput])
-
-  const handleOutputSelect = useCallback(outputCurrency => onCurrencySelection(Field.OUTPUT, outputCurrency), [
-    onCurrencySelection
-  ])
-
+  // const handleOutputSelect = useCallback(outputCurrency => onCurrencySelection(Field.OUTPUT, outputCurrency), [
+  //   onCurrencySelection
+  // ])
   return (
     <>
       <TokenWarningModal
@@ -370,7 +409,7 @@ export default function Register() {
       <AppBody>
         <SwapPoolTabs active={'swap'} />
         <Wrapper id="swap-page">
-          <ConfirmSwapModal
+          {/* <ConfirmSwapModal
             isOpen={showConfirm}
             trade={trade}
             originalTrade={tradeToConfirm}
@@ -382,7 +421,7 @@ export default function Register() {
             onConfirm={handleSwap}
             swapErrorMessage={swapErrorMessage}
             onDismiss={handleConfirmDismiss}
-          />
+          /> */}
 
           <AutoColumn gap={'md'}>
             <DAONameInputPanel
@@ -423,11 +462,11 @@ export default function Register() {
                   ) : null}
               </AutoRow>
             </AutoColumn>
-
-            <FactoryAddressInputPanel id="factoryPanel" onChange={handleAddDaoFactoryInput} displayThis={registerStateMemo === RegistState.REGISTERD && isShowDaoComponentsState}/>
-            <DfAddressInputPanel id="dfPanel" onChange={handleAddDaoFundInput} displayThis={registerStateMemo === RegistState.REGISTERD && isShowDaoComponentsState}/>
-            <MemberAddressInputPanel id="memberPanel" displayThis={registerStateMemo === RegistState.REGISTERD && isShowDaoComponentsState}/>
-
+            {!showIssue ?
+              (<><FactoryAddressInputPanel id="factoryPanel" onChange={handleAddDaoFactoryInput} displayThis={registerStateMemo === RegistState.REGISTERD && isShowDaoComponentsState} />
+                <DfAddressInputPanel id="dfPanel" onChange={handleAddDaoFundInput} displayThis={registerStateMemo === RegistState.REGISTERD && isShowDaoComponentsState} />
+                <MemberAddressInputPanel id="memberPanel" displayThis={registerStateMemo === RegistState.REGISTERD && isShowDaoComponentsState} /> </>)
+              : (<IssuePannel register={register} handleSubmit={handleSubmit} control={control} errors={errors} watch={watch} ></IssuePannel>)}
             {/* <LinkStyledButton id="add-members-button" onClick={() => onChangeRecipient('')} >
               + Add more members
              </LinkStyledButton>
@@ -524,19 +563,19 @@ export default function Register() {
                             `Register`
                           )}
                   </ButtonConfirmed>
-                  <ButtonAddComp
+                  {!showIssue ? (<ButtonAddComp
                     onClick={handleShowAddDaoComponentsPanel}
                     width="48%"
                     id="next-button"
                     disabled={
                       registerStateMemo !== RegistState.REGISTERD ||
-                      isShowDaoComponentsState? 
-                      (bodyState === BodyState.UNCHECK ||
-                        bodyState === BodyState.PENDING||
-                        bodyState === BodyState.ERROR ||
-                        bodyState === BodyState.UNKNOWN )
-                      : false
-                      
+                        isShowDaoComponentsState ?
+                        (bodyState === BodyState.UNCHECK ||
+                          bodyState === BodyState.PENDING ||
+                          bodyState === BodyState.ERROR ||
+                          bodyState === BodyState.UNKNOWN)
+                        : false
+
                     }
                     //error={registerStateMemo !== RegistState.REGISTERD}
                     registeredAndNoShowComponents={(registerStateMemo === RegistState.REGISTERD && !isShowDaoComponentsState) || (bodyState === BodyState.NOT_ADD)}
@@ -547,9 +586,21 @@ export default function Register() {
                         //true ? (
                         <AutoRow gap="6px" justify="center">
                           Waiting <Loader stroke="white" />
-                        </AutoRow>): bodyState === BodyState.ADDED? 'Issue token?' :'Add Components'}
+                        </AutoRow>) : bodyState === BodyState.ADDED ? 'Issue token?' : 'Add Components'}
                     </Text>
-                  </ButtonAddComp>
+                  </ButtonAddComp>)
+                    :
+                    (<ButtonAddComp onClick={handleSubmit(onSubmit)} id="next-button" width="48%" confirmed={false}>
+                      <Text fontSize={16} fontWeight={500}>
+                        {/* {bodyState === BodyState.PENDING ? (
+                        //true ? (
+                        <AutoRow gap="6px" justify="center">
+                          Waiting <Loader stroke="white" />
+                        </AutoRow>) : bodyState === BodyState.ADDED ? 'Issue token?' : 'Add Components'} */}
+                        Issue
+                    </Text>
+
+                    </ButtonAddComp>)}
                 </RowBetween>
                 :
                 <ButtonError

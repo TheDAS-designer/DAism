@@ -1,6 +1,7 @@
 import { createReducer } from '@reduxjs/toolkit'
 import { DAO } from '../register/reducer';
 import { daoComponentsInterface } from '../daoComponents/reducer';
+import { daoIssueInterface } from '../daoIssue/reducer';
 import {
   addTransaction,
   checkedTransaction,
@@ -23,6 +24,7 @@ export interface TransactionDetails {
   from: string
   dao?: DAO
   body?:daoComponentsInterface
+  issue?: daoIssueInterface
 }
 
 export interface TransactionState {
@@ -35,12 +37,12 @@ export const initialState: TransactionState = {}
 
 export default createReducer(initialState, builder =>
   builder
-    .addCase(addTransaction, (transactions, { payload: { chainId, from, hash, approval, summary, claim, dao, body } }) => {
+    .addCase(addTransaction, (transactions, { payload: { chainId, from, hash, approval, summary, claim, dao, body, issue } }) => {
       if (transactions[chainId]?.[hash]) {
         throw Error('Attempted to add existing transaction.')
       }
       const txs = transactions[chainId] ?? {}
-      txs[hash] = { hash, approval, summary, claim, from, addedTime: now(), dao, body}
+      txs[hash] = { hash, approval, summary, claim, from, addedTime: now(), dao, body, issue}
       transactions[chainId] = txs
     })
     .addCase(clearAllTransactions, (transactions, { payload: { chainId } }) => {

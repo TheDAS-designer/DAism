@@ -2,6 +2,7 @@ import { createAction } from '@reduxjs/toolkit'
 import { ChainId } from '@uniswap/sdk'
 import { DAO } from '../register/reducer';
 import { daoComponentsInterface } from '../daoComponents/reducer';
+import { daoIssueInterface } from '../daoIssue/reducer';
 
 export interface SerializableTransactionReceipt {
   to: string
@@ -23,6 +24,7 @@ export const addTransaction = createAction<{
   summary?: string
   dao?: DAO
   body?:daoComponentsInterface
+  issue?: daoIssueInterface
 }>('transactions/addTransaction')
 export const clearAllTransactions = createAction<{ chainId: ChainId }>('transactions/clearAllTransactions')
 export const finalizeTransaction = createAction<{
