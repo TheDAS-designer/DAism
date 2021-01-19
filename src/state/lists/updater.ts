@@ -19,6 +19,7 @@ export default function Updater(): null {
 
   const isWindowVisible = useIsWindowVisible()
 
+ 
   const fetchList = useFetchListCallback()
 
   const fetchAllListsCallback = useCallback(() => {
@@ -32,6 +33,9 @@ export default function Updater(): null {
   useInterval(fetchAllListsCallback, library ? 1000 * 60 * 10 : null)
 
   // whenever a list is not loaded and not loading, try again to load it
+  
+
+  
   useEffect(() => {
     Object.keys(lists).forEach(listUrl => {
       const list = lists[listUrl]

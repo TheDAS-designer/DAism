@@ -7,7 +7,7 @@ import { darken } from 'polished'
 
 import styled from 'styled-components'
 
-import Logo from '../../assets/svg/logo.svg'
+import Logo from '../../assets/svg/DAism.svg'
 //import LogoDark from '../../assets/svg/logo_white.svg'
 import LogoDark from '../../assets/svg/DAism.svg'
 import { useActiveWeb3React } from '../../hooks'
@@ -340,7 +340,7 @@ export default function Header() {
             <UNIWrapper onClick={toggleClaimModal}>
               <UNIAmount active={!!account && !availableClaim} style={{ pointerEvents: 'auto' }}>
                 <TYPE.white padding="0 2px">
-                  {claimTxn && !claimTxn?.receipt ? <Dots>Claiming UNI</Dots> : 'Claim UNI'}
+                  {claimTxn && !claimTxn?.receipt ? <Dots>Claiming NDAO</Dots> : 'Claim NDAO'}
                 </TYPE.white>
               </UNIAmount>
               <CardNoise />

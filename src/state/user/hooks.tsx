@@ -7,6 +7,7 @@ import { BASES_TO_TRACK_LIQUIDITY_FOR, PINNED_PAIRS } from '../../constants'
 import { useActiveWeb3React } from '../../hooks'
 import { useAllTokens } from '../../hooks/Tokens'
 import { AppDispatch, AppState } from '../index'
+import { initialState } from './reducer';
 import {
   addSerializedPair,
   addSerializedToken,
@@ -51,8 +52,13 @@ export function useIsDarkMode(): boolean {
     }),
     shallowEqual
   )
-
-  return userDarkMode === null ? matchesDarkMode : userDarkMode
+  //夜间进入黑暗模式
+  let initialDarkMode = true
+  const myDate = new Date()
+  if(Number(myDate.getHours()) < 21){
+    initialDarkMode = matchesDarkMode
+  }
+  return userDarkMode === null ? initialDarkMode : userDarkMode
 }
 
 export function useDarkModeManager(): [boolean, () => void] {

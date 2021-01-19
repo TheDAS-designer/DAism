@@ -2,7 +2,7 @@
   "name": "@uniswap/interface",
   "description": "Uniswap Interface",
   "private": true,
-  "homepage": "thedas-designer.github.io/DAism",
+  "homepage": "https://demo.daism.io/",
   "devDependencies": {
     "@ethersproject/experimental": "^5.0.1",
     "@popperjs/core": "^2.4.4",

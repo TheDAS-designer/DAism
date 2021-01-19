@@ -44,7 +44,7 @@ window.addEventListener('error', error => {
 function Updaters() {
   return (
     <>
-      <ListsUpdater />
+      {/* <ListsUpdater /> */}
       <UserUpdater />
       <ApplicationUpdater />
       <TransactionUpdater />

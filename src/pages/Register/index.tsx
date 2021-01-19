@@ -610,7 +610,8 @@ export default function Register() {
                 >
                   <Text fontSize={20} fontWeight={500}>
                     {/* 如果输入的dao已经存，此按钮显示为修改dao信息 */}
-                    {(!daoNameChecked ? 'Need a DAO name' : !daoIDChecked ? 'Need a DAO ID' : !svgChecked ? 'Need a svg pic' : 'Modify DAO info')}
+                    {!!account?(!daoNameChecked ? 'Required DAO name' : !daoIDChecked ? 'Required DAO ID' : !svgChecked ? 'Required svg pic' : 'Required unlock wallet')
+                    : 'Required unlock wallet'}
                   </Text>
                 </ButtonError>
 
