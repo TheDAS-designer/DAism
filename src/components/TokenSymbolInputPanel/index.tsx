@@ -1,19 +1,10 @@
-import { Currency, Pair } from '@uniswap/sdk'
 import React, { useState, useContext, useCallback } from 'react'
 import styled, { ThemeContext } from 'styled-components'
 import { darken } from 'polished'
-import { useCurrencyBalance } from '../../state/wallet/hooks'
-import CurrencySearchModal from '../SearchModal/CurrencySearchModal'
-import CurrencyLogo from '../CurrencyLogo'
-import DoubleCurrencyLogo from '../DoubleLogo'
 import { RowBetween } from '../Row'
 import { TYPE } from '../../theme'
-//import { Input as TextInput } from '../TextInput'
-import { Input as DAOIDTextInput } from '../DAOIDTextInput'
+import { Input as TokenSymbolTextInput } from '../TokenSymbolTextInput'
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
-
-import { useActiveWeb3React } from '../../hooks'
-import { useTranslation } from 'react-i18next'
 
 const InputRow = styled.div<{ selected: boolean }>`
   ${({ theme }) => theme.flexRowNoWrap}
@@ -125,7 +116,7 @@ interface CurrencyInputPanelProps {
   disabled?: boolean
 }
 
-export default function IDInputPanel({
+export default function TokenSymbolInputPanel({
 
   onUserInput,
   label = 'Input',
@@ -135,15 +126,15 @@ export default function IDInputPanel({
   customBalanceText,
   disabled
 }: CurrencyInputPanelProps) {
-  const { t } = useTranslation()
+  // const { t } = useTranslation()
 
-  const [modalOpen, setModalOpen] = useState(false)
-  const { account } = useActiveWeb3React()
+  // const [modalOpen, setModalOpen] = useState(false)
+  // const { account } = useActiveWeb3React()
   const theme = useContext(ThemeContext)
 
-  const handleDismissSearch = useCallback(() => {
-    setModalOpen(false)
-  }, [setModalOpen])
+  // const handleDismissSearch = useCallback(() => {
+  //   setModalOpen(false)
+  // }, [setModalOpen])
 
   return (
     <InputPanel id={id}>
@@ -160,9 +151,9 @@ export default function IDInputPanel({
         <InputRow style={hideInput ? { padding: '0', borderRadius: '8px' } : {}} selected={true}>
           {!hideInput && (
             <>
-              <DAOIDTextInput
-                className="dao-name-input"
-                placeholder="Number"
+              <TokenSymbolTextInput
+                className="token-symbol-input"
+                placeholder=""
                 onUserInput={val => {
                   onUserInput(val)
                 }}

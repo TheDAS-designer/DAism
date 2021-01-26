@@ -4,13 +4,9 @@ import {  ETHER, JSBI, Token } from '@uniswap/sdk'
 import { ParsedQs } from 'qs'
 import { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useActiveWeb3React } from '../../hooks'
-import { useDAONameCheck } from '../../hooks/useRegister'
-import useParsedQueryString from '../../hooks/useParsedQueryString'
 import { isAddress } from '../../utils'
 import { AppDispatch, AppState } from '../index'
-import { setDAOName, setDAOID, setSvg } from './actions';
-import { Flag } from 'react-feather'
+import { setDAOName, setDAOID, setSvg, setTokenSymbol, checkingDAOName, checkedDAOName } from './actions';
 
 
 
@@ -18,24 +14,33 @@ export function useRegisterState(): AppState['register'] {
   return useSelector<AppState, AppState['register']>(state => state.register)
 }
 
-export function useCheckDAOName(daoName: string): void{
-  const dispatch = useDispatch<AppDispatch>()
-  if(useDAONameCheck(daoName)) dispatch(setDAOName({daoName}))
-}
+// export function useCheckDAOName(daoName: string) {
+//   const dispatch = useDispatch<AppDispatch>()
+//   // const isChecked = useCheck(daoName)
+//   return useCallback(()=>{
+//     dispatch(checkingDAOName({isChecking: true}))
+//     if(isChecked) {
+//       dispatch(checkedDAOName())
+//     }
+//     dispatch(checkingDAOName({isChecking: false}))
+//   },[dispatch])
+ 
+// }
 
 export function useRegisterActionHandlers(): {
-  onDAONameChange: (daoName: string) => void
-  onDAOIDChange: (daoID: string) => void
+  onDAONameChange: (daoName: string) => boolean
+  onTokenSymbolChange: (tokenSymbol: string) => void
   onSvgChange: (svg: string | null ) => void
   onRegisterSubmit: () => void
 } {
-
+ // const isChecked = useCheck(daoName)
   const dispatch = useDispatch<AppDispatch>()
-  const registerState =  useRegisterState()
  // const aaa = useDAONameCheck(ddName)
   const onDAONameChange = useCallback(
-    (daoName: string)=> {
+    (daoName: string): boolean => {
+      if(!daoName) return false
       dispatch(setDAOName({daoName}))
+      return true
     },
     [dispatch]
   )
@@ -46,6 +51,11 @@ export function useRegisterActionHandlers(): {
     console.log('onDAOIDChange!!:', id.toString())
     dispatch(setDAOID({daoID: id.toString()}))
   }, [dispatch])
+
+  const onTokenSymbolChange = useCallback((tokenSymbol: string)=>{
+    if(tokenSymbol.length > 50) return
+    dispatch(setTokenSymbol({tokenSymbol}))
+  },[])
 
   const onSvgChange = useCallback(
     (svg: string | null) => {
@@ -63,7 +73,7 @@ export function useRegisterActionHandlers(): {
 
   return {
     onDAONameChange,
-    onDAOIDChange,
+    onTokenSymbolChange,
     onSvgChange,
     onRegisterSubmit
   }

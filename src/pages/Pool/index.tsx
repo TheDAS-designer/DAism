@@ -4,7 +4,7 @@ import { Pair, JSBI } from '@uniswap/sdk'
 import { Link } from 'react-router-dom'
 import { SwapPoolTabs } from '../../components/NavigationTabs'
 
-import FullPositionCard from '../../components/PositionCard'
+import FullPositionCard from '../../components/DAOCard'
 import { useUserHasLiquidityInAllTokens } from '../../data/V1'
 import { useTokenBalancesWithLoadingIndicator } from '../../state/wallet/hooks'
 import { StyledInternalLink, /*ExternalLink, */ TYPE, HideSmall } from '../../theme'
@@ -21,6 +21,7 @@ import { Dots } from '../../components/swap/styleds'
 import {/* CardSection,*/ DataCard, CardNoise, CardBGImage } from '../../components/earn/styled'
 import { useStakingInfo } from '../../state/stake/hooks'
 import { BIG_INT_ZERO } from '../../constants'
+import { DAO } from '../../state/register/reducer';
 
 const PageWrapper = styled(AutoColumn)`
   max-width: 640px;
@@ -114,15 +115,6 @@ export default function Pool() {
   const stakingInfosWithBalance = stakingInfo?.filter(pool => JSBI.greaterThan(pool.stakedAmount.raw, BIG_INT_ZERO))
   const stakingPairs = usePairs(stakingInfosWithBalance?.map(stakingInfo => stakingInfo.tokens))
 
-  // remove any pairs that also are included in pairs with stake in mining pool
-  const v2PairsWithoutStakedAmount = allV2PairsWithLiquidity.filter(v2Pair => {
-    return (
-      stakingPairs
-        ?.map(stakingPair => stakingPair[1])
-        .filter(stakingPair => stakingPair?.liquidityToken.address === v2Pair.liquidityToken.address).length === 0
-    )
-  })
-
   return (
     <>
       <PageWrapper>
@@ -180,43 +172,10 @@ export default function Pool() {
                   Connect to a wallet to search DAO.
                 </TYPE.body>
               </Card>
-            ) : v2IsLoading ? (
-              <EmptyProposals>
-                <TYPE.body color={theme.text3} textAlign="center">
-                  <Dots>Loading</Dots>
-                </TYPE.body>
-              </EmptyProposals>
-            ) : allV2PairsWithLiquidity?.length > 0 || stakingPairs?.length > 0 ? (
+            ) :  (
               <>
-                {/* <ButtonSecondary>
-                  <RowBetween>
-                    <ExternalLink href={'https://uniswap.info/account/' + account}>
-                      Account analytics and accrued fees
-                    </ExternalLink>
-                    <span> ↗</span>
-                  </RowBetween>
-                </ButtonSecondary> */}
-                {v2PairsWithoutStakedAmount.map(v2Pair => (
-                  <FullPositionCard key={v2Pair.liquidityToken.address} pair={v2Pair} />
-                ))}
-                {stakingPairs.map(
-                  (stakingPair, i) =>
-                    stakingPair[1] && ( // skip pairs that arent loaded
-                      <FullPositionCard
-                        key={stakingInfosWithBalance[i].stakingRewardAddress}
-                        pair={stakingPair[1]}
-                        stakedBalance={stakingInfosWithBalance[i].stakedAmount}
-                      />
-                    )
-                )}
               </>
-            ) : (
-              <EmptyProposals>
-                <TYPE.body color={theme.text3} textAlign="center">
-                  No liquidity found.
-                </TYPE.body>
-              </EmptyProposals>
-            )}
+            ) }
 
             <AutoColumn justify={'center'} gap="md">
               <Text textAlign="center" fontSize={14} style={{ padding: '.5rem 0 .5rem 0' }}>

@@ -50,3 +50,46 @@ export function useColor(token?: Token) {
 
   return color
 }
+
+async function getColorFromSvg(svg: String): Promise<string | null> {
+
+  // return Vibrant.from(svg)
+  //   .getPalette()
+  //   .then(palette => {
+  //     if (palette?.Vibrant) {
+  //       let detectedHex = palette.Vibrant.hex
+  //       let AAscore = hex(detectedHex, '#FFF')
+  //       while (AAscore < 3) {
+  //         detectedHex = shade(0.005, detectedHex)
+  //         AAscore = hex(detectedHex, '#FFF')
+  //       }
+  //       return detectedHex
+  //     }
+  //     return null
+  //   })
+  //   .catch(() => null)
+  return Promise.resolve('')
+}
+
+export function useSvgColor(svg?: string) {
+  const [color, setColor] = useState('#2172E5')
+
+  useLayoutEffect(() => {
+    let stale = false
+
+    if (svg) {
+      getColorFromSvg(svg).then(tokenColor => {
+        if (!stale && tokenColor !== null) {
+          setColor(tokenColor)
+        }
+      })
+    }
+
+    return () => {
+      stale = true
+      setColor('#2172E5')
+    }
+  }, [svg])
+
+  return color
+}

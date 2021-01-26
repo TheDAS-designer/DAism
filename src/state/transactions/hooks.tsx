@@ -102,7 +102,7 @@ export function useHasPendingRegister(dao: DAO | undefined): boolean[] {
     //check format
     if (!dao ||
       !dao.daoName ||
-      !dao.daoID ||
+      !dao.tokenSymbol ||
       !dao.svg) return [false, true, false]
 
     const txs = Object.keys(allTransactions).filter(tx => !!tx)
@@ -118,14 +118,14 @@ export function useHasPendingRegister(dao: DAO | undefined): boolean[] {
     const receiptTxs = groupByTxs[0]
     const pendingTxs = groupByTxs[1]
     if (pendingTxs && pendingTxs.txs && pendingTxs.txs.length > 0
-      && pendingTxs.txs.some(a => a.dao && a.dao.daoName === dao.daoName && a.dao.daoID === dao.daoID
+      && pendingTxs.txs.some(a => a.dao && a.dao.daoName === dao.daoName && a.dao.tokenSymbol=== dao.tokenSymbol
         && isTransactionRecent(a))) {
 
       return [true, false, false]
 
     }
 
-    if (receiptTxs && receiptTxs.txs && receiptTxs.txs.length > 0 && receiptTxs.txs.some(a => a.dao && a.dao.daoName === dao.daoName && a.dao.daoID === dao.daoID)) {
+    if (receiptTxs && receiptTxs.txs && receiptTxs.txs.length > 0 && receiptTxs.txs.some(a => a.dao && a.dao.daoName === dao.daoName && a.dao.tokenSymbol=== dao.tokenSymbol)) {
 
       return [false, false, true]
     }
@@ -147,7 +147,7 @@ export function useHasPendingAddBody(components: daoComponentsInterface | undefi
       !components.daoFundAddress ||
       !components.daoMemebers ||
       components.daoMemebers.length === 0 ||
-      !components.daoId
+      !components.daoName
     ) return [false, true, false]
 
     let receiptTxs: Array<TransactionDetails> = []
@@ -166,7 +166,7 @@ export function useHasPendingAddBody(components: daoComponentsInterface | undefi
 
     if (pendingTxs.length > 0
       && pendingTxs.some(
-        a => a.body && a.body.daoId === components.daoId
+        a => a.body && a.body.daoName === components.daoName
           && a.body.daoFactoryAddress === components.daoFactoryAddress
           && a.body.daoFundAddress === components.daoFundAddress
           && isTransactionRecent(a))) {
@@ -175,7 +175,7 @@ export function useHasPendingAddBody(components: daoComponentsInterface | undefi
 
     }
 
-    if (receiptTxs.length > 0 && receiptTxs.some(a => a.body && a.body.daoId === components.daoId
+    if (receiptTxs.length > 0 && receiptTxs.some(a => a.body && a.body.daoName === components.daoName
       && a.body.daoFactoryAddress === components.daoFactoryAddress
       && a.body.daoFundAddress === components.daoFundAddress)) {
 

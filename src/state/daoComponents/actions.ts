@@ -2,7 +2,7 @@ import { createAction } from '@reduxjs/toolkit'
 
 
 
-export const showAddDaoComponentsPanelWithDaoIDAction = createAction<{daoId: string}>('daoComponents/showAddDaoComponentsPanelWithDaoIDAction')
+export const showAddDaoComponentsPanelWithDaoNameAction = createAction<{daoName: string}>('daoComponents/showAddDaoComponentsPanelWithDaoNameAction')
 export const daoFactoryChangeAction = createAction<{daoFactoryAddress: string}>('daoComponents/daoFactoryChangeAction')
 export const daoFundChangeAction = createAction<{daoFundAddress: string}>('daoComponents/daoFundChangeAction')
 export const addMemberAddressAction = createAction<{address: string}>('daoComponents/addMemberAddressAction')

@@ -12,13 +12,13 @@ import { BigNumber } from 'ethers'
 import { DAO } from '../state/register/reducer';
 import { daoComponentsInterface } from '../state/daoComponents/reducer';
 import { useDaoComponentsState } from 'state/daoComponents/hooks'
-import { showAddDaoComponentsPanelWithDaoIDAction } from '../state/daoComponents/actions';
+import { showAddDaoComponentsPanelWithDaoNameAction } from '../state/daoComponents/actions';
 import { useDaoIssueState } from 'state/daoIssue/hooks'
 import { daoIssueInterface } from '../state/daoIssue/reducer';
 
 export enum RegistState {
   ERROR_DAONAME,
-  ERROR_DAOID,
+  ERROR_SYMBOL,
   ERROR_SVG,
   UNKNOWN,
   NOT_REGISTERD,
@@ -51,14 +51,14 @@ export function useRegisterCallback(): [RegistState, () => Promise<void>] {
   const registerContract = useRegisterContract()
   const addTransaction = useTransactionAdder()
   const registerState = useRegisterState()
-  const dao: DAO = { daoName: registerState.daoName, svg: registerState.svg as string, daoID: registerState.daoID }
+  const dao: DAO = { daoName: registerState.daoName, svg: registerState.svg as string, tokenSymbol: registerState.tokenSymbol }
   const [pendingRegister, notRegistered, registered] = useHasPendingRegister(dao)
   //const  isCreated = useIsDAOCreated()
   // check the current approval status
   const registerStateMemo: RegistState = useMemo(() => {
     console.log('[pendingRegister, notRegistered, registered] :', pendingRegister, notRegistered, registered)
     if (!registerState.daoName) return RegistState.ERROR_DAONAME
-    if (!registerState.daoID) return RegistState.ERROR_DAOID
+    if (!registerState.tokenSymbol) return RegistState.ERROR_SYMBOL
     if (!registerState.svg) return RegistState.ERROR_SVG
     if (registered) return RegistState.REGISTERD
     if (notRegistered) return RegistState.NOT_REGISTERD
@@ -77,7 +77,7 @@ export function useRegisterCallback(): [RegistState, () => Promise<void>] {
 
 
   const registering = useCallback(async (): Promise<void> => {
-    if (!dao.daoName || !dao.daoID || !dao.svg
+    if (!dao.daoName || !dao.tokenSymbol || !dao.svg
       || !account || !chainId) {
       return
     }
@@ -87,11 +87,18 @@ export function useRegisterCallback(): [RegistState, () => Promise<void>] {
       return
     }
 
-    const estimatedGas = await registerContract?.estimateGas.register(registerState.daoName, registerState.svg, registerState.daoID, { value: 1 })
+    const estimatedGas = 
+    await registerContract?.estimateGas.registerFree(
+      registerState.daoName, 
+      registerState.svg, 
+      registerState.tokenSymbol)
 
-    return registerContract?.register(registerState.daoName, registerState.svg, registerState.daoID, {
-      gasLimit: calculateGasMargin(estimatedGas as BigNumber),
-      value: 1
+    return registerContract?.registerFree(
+      registerState.daoName, 
+      registerState.svg, 
+      registerState.tokenSymbol, 
+      {
+      gasLimit: calculateGasMargin(estimatedGas as BigNumber)
     })
       .then((response: TransactionResponse) => {
         console.log('useRegist response:', response)
@@ -143,8 +150,6 @@ export function useAddBodyCallback(): [BodyState, () => Promise<void>] {
 
 
   const addBody = useCallback(async (): Promise<void> => {
-    // console.log('addBody!!!!! ')
-    // console.log(`daoComponentsState.daoId:${daoComponentsState.daoId} daoComponentsState.daoFactoryAddress:${daoComponentsState.daoFactoryAddress} daoComponentsState.daoFundAddress:${daoComponentsState.daoFundAddress}`)
     if (bodyState === BodyState.ERROR
       || !account || !chainId) {
       return
@@ -163,14 +168,14 @@ export function useAddBodyCallback(): [BodyState, () => Promise<void>] {
     }
 
     const estimatedGas = await registerContract?.estimateGas
-      ._registerForBody(daoComponentsState.daoFactoryAddress, daoComponentsState.daoFundAddress, daoComponentsState.daoId, memberAddrArray, memberPrestigeArray)
+      ._registerForBody(daoComponentsState.daoFactoryAddress, daoComponentsState.daoFundAddress, daoComponentsState.daoName, memberAddrArray, memberPrestigeArray)
 
-    return registerContract?._registerForBody(daoComponentsState.daoFactoryAddress, daoComponentsState.daoFundAddress, daoComponentsState.daoId, memberAddrArray, memberPrestigeArray, {
+    return registerContract?._registerForBody(daoComponentsState.daoFactoryAddress, daoComponentsState.daoFundAddress, daoComponentsState.daoName, memberAddrArray, memberPrestigeArray, {
       gasLimit: calculateGasMargin(estimatedGas as BigNumber)
     })
       .then((response: TransactionResponse) => {
         console.log('useAddBody response:', response)
-        addTransaction(response, { summary: `[${daoComponentsState.daoId}] add components successfully`, body: daoComponentsState })
+        addTransaction(response, { summary: `[${daoComponentsState.daoName}] add components successfully`, body: daoComponentsState })
         //eventName: EventType, listener: Listener
       }).catch((error: Error) => {
         console.debug('Failed to Add body', error)
@@ -186,7 +191,7 @@ export function useIssueCallback(): [IssueState, (data: daoIssueInterface) => Pr
   const registerContract = useRegisterContract()
   const addTransaction = useTransactionAdder()
   const issueState = useDaoIssueState()
-  const daoId = useDaoComponentsState().daoId
+  const daoName = useDaoComponentsState().daoName
   const [pendingIssue, not_issue, issued] = useHasPendingIssue(issueState)
   //const  isCreated = useIsDAOCreated()
   // check the current approval status
@@ -214,7 +219,6 @@ export function useIssueCallback(): [IssueState, (data: daoIssueInterface) => Pr
 
   const issue = useCallback(async (data: daoIssueInterface): Promise<void> => {
     console.log('issue!!!!! ')
-    // console.log(`daoComponentsState.daoId:${daoComponentsState.daoId} daoComponentsState.daoFactoryAddress:${daoComponentsState.daoFactoryAddress} daoComponentsState.daoFundAddress:${daoComponentsState.daoFundAddress}`)
     if (!account || !chainId) {
       return
     }
@@ -226,12 +230,12 @@ export function useIssueCallback(): [IssueState, (data: daoIssueInterface) => Pr
    
     // TODO : 添加issue data 写入的hook
     console.log('issue data:', data)
-    console.log('dao id:', daoId)
+    console.log('dao name:', daoName)
     
     const estimatedGas = await registerContract?.estimateGas
-      ._issue(data.allocationProportion, data.initialPrice, daoId, data.decimal, data.tokenName, data.tokenSymbol, data.totalSupply)
+      ._issue(data.allocationProportion, data.initialPrice, daoName, data.decimal, data.tokenName, data.tokenSymbol, data.totalSupply)
     console.log('issue estimatedGas:', estimatedGas)
-    return registerContract?._issue(data.allocationProportion, data.initialPrice, daoId, data.decimal, data.tokenName, data.tokenSymbol, data.totalSupply, {
+    return registerContract?._issue(data.allocationProportion, data.initialPrice, daoName, data.decimal, data.tokenName, data.tokenSymbol, data.totalSupply, {
       gasLimit: calculateGasMargin(estimatedGas as BigNumber)
       // gasLimit: 52688
     })
@@ -243,7 +247,7 @@ export function useIssueCallback(): [IssueState, (data: daoIssueInterface) => Pr
         console.debug('Failed to issue', error)
         throw error
       })
-  }, [currentIssueState, registerContract, account, addTransaction, chainId, daoId])
+  }, [currentIssueState, registerContract, account, addTransaction, chainId, daoName])
 
   return [currentIssueState, issue]
 }

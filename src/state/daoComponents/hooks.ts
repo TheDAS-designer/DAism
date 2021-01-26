@@ -8,7 +8,7 @@ import { useActiveWeb3React } from '../../hooks'
 import useParsedQueryString from '../../hooks/useParsedQueryString'
 import { isAddress } from '../../utils'
 import { AppDispatch, AppState } from '../index'
-import { showAddDaoComponentsPanelWithDaoIDAction, daoFactoryChangeAction, daoFundChangeAction, addMemberAddressAction, memberPrestigeChangeAction, memberDeleteAction, inputErrorAction } from './actions';
+import { showAddDaoComponentsPanelWithDaoNameAction, daoFactoryChangeAction, daoFundChangeAction, addMemberAddressAction, memberPrestigeChangeAction, memberDeleteAction, inputErrorAction } from './actions';
 import { Member } from './reducer';
 
 const ENS_NAME_REGEX = /^[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)?$/
@@ -45,10 +45,8 @@ export function useDaoComponentsActionHandlers(): {
   const errorState = useDaoComponentsState().inputError
   // const aaa = useDAONameCheck(ddName)
   const onShowDaoComponentsPanel = useCallback(
-    (daoId: string) => {
-      const p = /^[0-9]*$/
-      if(!p.test(daoId)) return
-      dispatch(showAddDaoComponentsPanelWithDaoIDAction({daoId}))
+    (daoName: string) => {
+      dispatch(showAddDaoComponentsPanelWithDaoNameAction({daoName}))
     },
     [dispatch])
 

@@ -1,62 +1,60 @@
 import { createReducer } from '@reduxjs/toolkit'
 import { DateObject } from 'luxon';
-import { setDAOName, setDAOID, setSvg, registerDAO } from './actions';
-import Register from '../../pages/Register/index';
+import { setDAOName, setSvg, setTokenSymbol, checkedDAOName, checkingDAOName,  } from './actions';
 
 export interface RegisterState {
-  readonly daoName: string
-  readonly daoID: string
-  readonly svg: string | null
-  pendingDAOs?: PendingDAOs
+  daoName: string
+  //daoID: string
+  tokenSymbol: string
+  svg: string | null
+  checkedDAOName: boolean
+ 
+  checkingDAOName: boolean
+  
 }
 
 export interface DAO {
-  readonly daoName: string
-  readonly svg: string
-  readonly daoID: string
+  daoName: string
+  svg: string
+  tokenSymbol: string
 }
-export type PendingDAOs = Array<DAO>
 
 const initialState: RegisterState = {
   daoName: '',
-  daoID: '',
-  svg: ''
+  tokenSymbol: '',
+  svg: '',
+  
+  checkingDAOName: false,
+  
+  checkedDAOName: false
 }
 
 export default createReducer<RegisterState>(initialState, builder =>
   builder
     .addCase(
       setDAOName,
-      (state,{ payload: {daoName} }) => {
-        return {
-          ...state,
-         daoName
-        }
+      (state, { payload: { daoName } }) => {
+        state.daoName = daoName
       }
     )
-    .addCase(setDAOID,(state, {payload: {daoID}}) => {
-      return{
-        ...state,
-        daoID
-      }
+    // .addCase(setDAOID,(state, {payload: {daoID}}) => {
+    //   return{
+    //     ...state,
+    //     daoID
+    //   }
+    // })
+    .addCase(setTokenSymbol, (state, { payload: { tokenSymbol } }) => {
+      state.tokenSymbol = tokenSymbol
     })
-    .addCase(setSvg, (state, {payload: {svg}}) =>  {
-      return{...state ,svg}
+    .addCase(setSvg, (state, { payload: { svg } }) => {
+      return { ...state, svg }
     })
-    .addCase(registerDAO,(state) => {
-      if(!state.daoName || !state.daoID || !state.svg){
-        return state
-      }
-      const dao : DAO = {daoName:state.daoName, svg: state.svg as string, daoID: state.daoID}
-      // let daos : PendingDAOs
-      // if(state.pendingDAOs && state.pendingDAOs.length > 0){
-      //   daos = state.pendingDAOs
-      // }else{
-      //   state.pendingDAOs = [dao]
-      // }
-      return{
-        ...state,
-        pendingDAOs:[...state.pendingDAOs, dao]
-      }
+    
+    .addCase(checkedDAOName, (state) => {
+      state.checkedDAOName = true
     })
+    .addCase(checkingDAOName, (state, { payload: { isChecking } }) => {
+      state.checkingDAOName = isChecking
+    })
+
 )

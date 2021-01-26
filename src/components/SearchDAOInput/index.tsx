@@ -1,7 +1,8 @@
 import useDebounce from 'hooks/useDebounce'
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import styled from 'styled-components'
 import { escapeRegExp } from '../../utils'
+
 
 
 const StyledInput = styled.input<{ error?: boolean; fontSize?: string; align?: string }>`
@@ -19,13 +20,14 @@ const StyledInput = styled.input<{ error?: boolean; fontSize?: string; align?: s
   overflow: hidden;
   text-overflow: ellipsis;
   padding: 0px;
+  display:none;
   -webkit-appearance: textfield;
 
   ::-webkit-search-decoration {
     -webkit-appearance: none;
   }
 
-  [type='number'] {
+  [type='file'] {
     -moz-appearance: textfield;
   }
 
@@ -51,61 +53,32 @@ export const Input = React.memo(function InnerInput({
   fontSize?: string
   align?: 'right' | 'left'
 } & Omit<React.HTMLProps<HTMLInputElement>, 'ref' | 'onChange' | 'as'>) {
-  const [daoIdInput, setDaoIdInput] = useState<string>('')
-  const reg = /[0-9]*/g;
+  
+  const [value, setValue] = useState('')
+  const debouncedValue = useDebounce(value,1000)
 
-  //防抖
-  const debouncedValue = useDebounce(daoIdInput, 1000)
-
-  useEffect(() => {
-    if (debouncedValue) {
-      const tempValue = debouncedValue.match(reg);
-
-      let resultStr = "";
-      if (tempValue != null) {
-        resultStr = tempValue.join("");
-        console.log('checkDAOID.resultStr', resultStr)
-        onUserInput(resultStr.toString())
-      } else {
-        onUserInput(debouncedValue)
-      }
-
-
+  useEffect(()=>{
+    if(debouncedValue){
+      onUserInput(debouncedValue)
     }
-  }, [debouncedValue])
+  },[debouncedValue])
 
   return (
+  <>
     <StyledInput
       {...rest}
-      value={daoIdInput}
-      onInput={(event) => { setDaoIdInput(event.currentTarget.value) }}
-      onChange={event => {
-        // replace commas with periods, because uniswap exclusively uses period as the decimal separator
-        //setDaoIdInput('123123123')
-        //checkDAOID(event.target.value)
-        // console.log('onChange value1:', event.target.value)
-        // console.log('onChange value2', daoIdInput)
-        // onUserInput(daoIdInput)
-      }}
-
-      // universal input options
-      //inputMode="numeric"
-      //title="DAO Name"
       autoComplete="off"
       autoCorrect="off"
-      // text-specific options
-      //type="number"
-      //pattern="^[.*]$"
-      // pattern="^[0-9]*$"
-
-      placeholder={placeholder || 'The main point of this DAO'}
-      minLength={1}
-      maxLength={20}
-      spellCheck="false"
+      type="text"
+      inputMode="text"
+      onChange={event => {
+        // replace commas with periods, because uniswap exclusively uses period as the decimal separator
+        // TODO: Check if the name of the DAO exists
+        setValue(event.target.value)
+      }}
     />
-  )
+  </>
+)
 })
 
 export default Input
-
-// const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`) // match escaped "." characters via in a non-capturing group

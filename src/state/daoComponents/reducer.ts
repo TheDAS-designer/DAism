@@ -1,7 +1,7 @@
 import { createReducer } from '@reduxjs/toolkit'
 import { DateObject } from 'luxon';
 import {
-  showAddDaoComponentsPanelWithDaoIDAction,
+  showAddDaoComponentsPanelWithDaoNameAction,
   daoFactoryChangeAction
   , daoFundChangeAction
   , addMemberAddressAction
@@ -16,7 +16,7 @@ export interface Member {
 }
 
 export interface daoComponentsInterface {
-  daoId: string
+  daoName: string
   showAddDaoComponentsPanel: boolean
   daoFactoryAddress: string
   daoFundAddress: string
@@ -25,7 +25,7 @@ export interface daoComponentsInterface {
 }
 
 const initialState: daoComponentsInterface = {
-  daoId:'',
+  daoName:'',
   showAddDaoComponentsPanel: false,
   daoFactoryAddress: '',
   daoFundAddress: '',
@@ -38,12 +38,12 @@ const initialState: daoComponentsInterface = {
 export default createReducer<daoComponentsInterface>(initialState, builder =>
   builder
     .addCase(
-      showAddDaoComponentsPanelWithDaoIDAction,
-      (state, {payload:{daoId}}) => {
+      showAddDaoComponentsPanelWithDaoNameAction,
+      (state, {payload:{daoName}}) => {
         return {
           ...state,
           showAddDaoComponentsPanel: true,
-          daoId
+          daoName
         }
       }
     )

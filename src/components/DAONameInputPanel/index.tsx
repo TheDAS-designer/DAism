@@ -78,9 +78,11 @@ const InputPanel = styled.div<{ hideInput?: boolean }>`
   z-index: 1;
 `
 
-const Container = styled.div<{ hideInput: boolean }>`
+const Container = styled.div<{ hideInput: boolean, error: boolean }>`
   border-radius: ${({ hideInput }) => (hideInput ? '8px' : '20px')};
-  border: 1px solid ${({ theme }) => theme.bg2};
+  border: 1px solid ${({ error, theme }) => (error ? theme.red1 : theme.bg2)};
+  transition: border-color 300ms ${({ error }) => (error ? 'step-end' : 'step-start')},
+    color 500ms ${({ error }) => (error ? 'step-end' : 'step-start')};
   background-color: ${({ theme }) => theme.bg1};
 `
 
@@ -115,7 +117,7 @@ const StyledBalanceMax = styled.button`
 `
 
 interface CurrencyInputPanelProps {
-  onUserInput: (value: string) => void
+  onUserInput: (value: string) => boolean
   label?: string
   hideInput?: boolean
   id: string
@@ -135,7 +137,7 @@ export default function CurrencyInputPanel({
   disabled
 }: CurrencyInputPanelProps) {
   const { t } = useTranslation()
-
+  const [error, setError]=useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const { account } = useActiveWeb3React()
   const theme = useContext(ThemeContext)
@@ -146,7 +148,7 @@ export default function CurrencyInputPanel({
 
   return (
     <InputPanel id={id}>
-      <Container hideInput={hideInput}>
+      <Container hideInput={false} error={error}>
         {!hideInput && (
           <LabelRow>
             <RowBetween>
@@ -161,8 +163,13 @@ export default function CurrencyInputPanel({
             <>
               <TextInput
                 className="dao-name-input"
-                onUserInput={val => {
-                  onUserInput(val)
+                onUserInput={async val => {
+                  const checked = await onUserInput(val)
+                  if(checked){
+                    setError(false)
+                  }else{
+                    setError(true)
+                  }
                 }}
                 disabled={disabled}
                 fontSize={'1.2rem'}

@@ -1,10 +1,7 @@
-import { useRegisterContract } from 'hooks/useContract'
 import useDebounce from 'hooks/useDebounce'
-import React, { useState, useEffect } from 'react'
-import { useSingleCallResult } from 'state/multicall/hooks'
+import React, { useState, useRef, useEffect } from 'react'
 import styled from 'styled-components'
 import { escapeRegExp } from '../../utils'
-
 
 
 const StyledInput = styled.input<{ error?: boolean; fontSize?: string; align?: string }>`
@@ -28,7 +25,7 @@ const StyledInput = styled.input<{ error?: boolean; fontSize?: string; align?: s
     -webkit-appearance: none;
   }
 
-  [type='text'] {
+  [type='number'] {
     -moz-appearance: textfield;
   }
 
@@ -54,34 +51,53 @@ export const Input = React.memo(function InnerInput({
   fontSize?: string
   align?: 'right' | 'left'
 } & Omit<React.HTMLProps<HTMLInputElement>, 'ref' | 'onChange' | 'as'>) {
-  const [value, setValue] = useState('')
-  const debouncedValue = useDebounce(value, 1000)
+  const [tokenSymbolInput, setTokenSymbolInput] = useState<string>('')
+  const reg = /[0-9]*/g;
+
+  //防抖
+  const debouncedValue = useDebounce(tokenSymbolInput, 1000)
+
+  // useEffect(() => {
+  //   if (debouncedValue) {
+  //     const tempValue = debouncedValue.match(reg);
+
+  //     let resultStr = "";
+  //     if (tempValue != null) {
+  //       resultStr = tempValue.join("");
+  //       console.log('checkDAOID.resultStr', resultStr)
+  //       onUserInput(resultStr.toString())
+  //     } else {
+  //       onUserInput(debouncedValue)
+  //     }
+  //   }
+  // }, [debouncedValue])
   useEffect(() => {
     if (debouncedValue) {
         onUserInput(debouncedValue)
-      }
+    }
   }, [debouncedValue])
 
   return (
     <StyledInput
       {...rest}
+      value={tokenSymbolInput}
+      onInput={(event) => { setTokenSymbolInput(event.currentTarget.value) }}
       onChange={event => {
         // replace commas with periods, because uniswap exclusively uses period as the decimal separator
-        // TODO: Check if the name of the DAO exists
-        setValue(event.target.value)
+        //setDaoIdInput('123123123')
+        //checkDAOID(event.target.value)
+        // console.log('onChange value1:', event.target.value)
+        // console.log('onChange value2', daoIdInput)
+        // onUserInput(daoIdInput)
       }}
-      // universal input options
-      inputMode="text"
-      //title="DAO Name"
       autoComplete="off"
       autoCorrect="off"
-      // text-specific options
       type="text"
-      //pattern="^[.*]$"
+
       placeholder={placeholder}
       minLength={1}
-      maxLength={25}
-      spellCheck="true"
+      maxLength={50}
+      spellCheck="false"
     />
   )
 })

@@ -11,7 +11,7 @@ import Column, { AutoColumn } from '../../components/Column'
 import ConfirmSwapModal from '../../components/swap/ConfirmSwapModal'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import DAONameInputPanel from '../../components/DAONameInputPanel'
-import IDInputPanel from '../../components/IDInputPanel'
+import IDInputPanel from '../../components/TokenSymbolInputPanel'
 import SVGInputPanel from '../../components/SVGInputPanel'
 import { SwapPoolTabs } from '../../components/NavigationTabs'
 import { AutoRow, RowBetween } from '../../components/Row'
@@ -300,11 +300,7 @@ export default function Swap() {
           />
 
           <AutoColumn gap={'md'}>
-            <DAONameInputPanel
-              label={'DAO Name:'}
-              onUserInput={handleDaoNameInput}
-              id="register-dao-name"
-            />
+           
             <IDInputPanel
               label={'ID:'}
               onUserInput={handleTypeInput}

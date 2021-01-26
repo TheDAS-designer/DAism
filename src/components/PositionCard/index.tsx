@@ -21,10 +21,11 @@ import { useColor } from '../../hooks/useColor'
 import Card, { GreyCard, LightCard } from '../Card'
 import { AutoColumn } from '../Column'
 import CurrencyLogo from '../CurrencyLogo'
-import DoubleCurrencyLogo from '../DoubleLogo'
+import DAOLogo from '../DAOLogo'
 import { RowBetween, RowFixed, AutoRow } from '../Row'
 import { Dots } from '../swap/styleds'
 import { BIG_INT_ZERO } from '../../constants'
+import DoubleCurrencyLogo from 'components/DoubleLogo'
 
 export const FixedHeightRow = styled(RowBetween)`
   height: 24px;

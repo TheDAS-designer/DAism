@@ -51,18 +51,18 @@ export function useRegist() {
     const addTransaction = useTransactionAdder()
 
     const registHandel = useCallback(async (): Promise<void> => {
-        if (!registerState.daoName || !registerState.daoID || !registerState.svg 
+        if (!registerState.daoName || !registerState.tokenSymbol || !registerState.svg 
             || !account || !chainId) {
             return
         }
 
         const estimatedGas = 
-        await registerContract?.estimateGas.register(registerState.daoName, registerState.daoID, registerState.svg,{value:1}).catch(() => {
+        await registerContract?.estimateGas.register(registerState.daoName, registerState.tokenSymbol, registerState.svg,{value:1}).catch(() => {
             
-            return registerContract?.estimateGas.register(registerState.daoName, registerState.daoID, registerState.svg,{value:1})
+            return registerContract?.estimateGas.register(registerState.daoName, registerState.tokenSymbol, registerState.svg,{value:1})
          })
 
-        registerContract?.register(registerState.daoName, registerState.svg, registerState.daoID,{
+        registerContract?.register(registerState.daoName, registerState.svg, registerState.tokenSymbol,{
            gasLimit: calculateGasMargin(estimatedGas as BigNumber),
             value: 1
           })
@@ -85,7 +85,8 @@ export function useIsDAOCreated() {
     
     const daoId  = useSingleCallResult(registerContract,'nameToID',[registerState.daoName]).result
     console.log(`search DAOID by DAONAME: ${registerState.daoName} , DAOID: ${daoId}`)
-   // setIsDAOCreated(daoId?.toString() === registerState.daoID)
-    return daoId?.toString() === registerState.daoID
+   
+    // TODO: 修改成新合约的返回值
+    return false //daoId?.toString() === registerState.daoID
    // return isDAOCreated
 }
